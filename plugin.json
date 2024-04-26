@@ -1,0 +1,44 @@
+{
+  "name": "plugin-add-shortcut-to-topbar",
+  "author": "iamqiz",
+  "url": "https://github.com/iamqiz/siyuan-plugin-add-shortcut-to-topbar",
+  "version": "1.0.0",
+  "minAppVersion": "3.0.0",
+  "backends": [
+    "windows",
+    "linux",
+    "darwin",
+    "ios",
+    "android"
+  ],
+  "frontends": [
+    "desktop",
+    "mobile",
+    "browser-desktop",
+    "browser-mobile",
+    "desktop-window"
+  ],
+  "displayName": {
+    "default": "添加快捷键到工具栏",
+    "zh_CN": "添加快捷键到工具栏"
+  },
+  "description": {
+    "default": "在顶栏添加图标,点击之后执行相应的快捷键",
+    "zh_CN": "在顶栏添加图标,点击之后执行相应的快捷键"
+  },
+  "readme": {
+    "default": "README.md",
+    "zh_CN": "README_zh_CN.md"
+  },
+  "funding": {
+    "openCollective": "",
+    "patreon": "",
+    "github": "",
+    "custom": [
+    ]
+  },
+  "keywords": [
+    "工具栏",
+    "快捷键"
+  ]
+}

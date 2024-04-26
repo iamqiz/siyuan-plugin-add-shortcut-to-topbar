@@ -1,0 +1,108 @@
+.plugin-sample {
+  &__custom-tab {
+    background-color: var(--b3-theme-background);
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__custom-dock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__time {
+    background: var(--b3-card-info-background);
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+}
+.hover-text{
+  position: relative;
+}
+
+.hover-text::after {
+  content: attr(data-content);
+  position: absolute;
+  top: 0%;
+  left: 0;
+  display: none;
+  padding: 0px;
+  background-color: red;
+  color: #fff;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.hover-text:hover::after {
+  display: block;
+}
+.hover-text:hover {
+  color:transparent;
+}
+.plugin-add-shortcut-to-topbar {
+  &__titleInput {
+    width: 80px;
+  }
+
+  &__shortcutInput {
+    //background-color: red;
+  }
+
+  &__iconInput {
+    width: 100px;
+  }
+
+
+  &__svg {
+      display: block;
+      height: 20px;
+      width: 20px;
+      margin: 0 auto;
+  }
+
+  &__block {
+    margin-top: 11px;
+  }
+
+  &__fn_clear {
+    margin-top: 10px;
+
+    & > div {
+      float: left;
+      //width: 150px;
+      text-align: center;
+      //margin-bottom: 20px;
+      padding: 4px;
+      border: 1px solid black;
+      min-width: 60px;
+    }
+
+    &:before, &:after {
+      display: table;
+      content: "";
+    }
+
+    &:after {
+      clear: both;
+    }
+  }
+
+
+  &__custom-dock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__time {
+    background: var(--b3-card-info-background);
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+}
