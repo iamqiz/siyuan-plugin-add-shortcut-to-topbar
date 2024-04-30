@@ -2,7 +2,7 @@
   "name": "plugin-add-shortcut-to-topbar",
   "author": "iamqiz",
   "url": "https://github.com/iamqiz/siyuan-plugin-add-shortcut-to-topbar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "3.0.0",
   "backends": [
     "windows",
@@ -27,8 +27,7 @@
     "zh_CN": "在顶栏添加图标,点击之后执行相应的快捷键"
   },
   "readme": {
-    "default": "README.md",
-    "zh_CN": "README_zh_CN.md"
+    "default": "README.md"
   },
   "funding": {
     "openCollective": "",
