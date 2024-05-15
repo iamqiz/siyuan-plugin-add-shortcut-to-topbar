@@ -21,7 +21,7 @@ import {
     ICardData,
     EventMenu,
     IEventBusMap,
-    TEventBus, Lute
+    TEventBus, Lute, IProtyleOption
 } from "siyuan";
 import "./index.scss";
 import * as mylib from "./libs"
@@ -29,18 +29,42 @@ import {IMenuBaseDetail} from "siyuan/types/events";
 import {IProtyle} from "siyuan/types/protyle";
 //配置存储位置: SiYuan工作空间\data\storage\petal\<plugin-name>
 const STORAGE_NAME = "keylistConfig";
+const STORAGE_NAME2 = "keylistConfig2";
 const TAB_TYPE = "custom_tab";
 const DOCK_TYPE = "dock_tab";
 type TypeMapString2Function = {
   [key: string]: Function;
 };
+// import {Sortable} from "sortablejs";
+import Sortable from 'sortablejs';
+// import {Sortable} = require("sortablejs")
 const sleep1 = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+let builtinEditTools:{[key:string]:string[]}= {
+        "block-ref": ["iconRef","引用"],
+        "a": ["iconLink","链接"],
+        "text": ["iconFont","外观"],
+        "strong": ["iconBold","粗体"],
+        "em": ["iconItalic","斜体"],
+        "u": ["iconUnderline","下划线"],
+        "s": ["iconStrike","删除线"],
+        "mark": ["iconMark","标记"],
+        "sup": ["iconSup","上标"],
+        "sub": ["iconSub","下标"],
+        "clear": ["iconClear","清除行级元素"],
+        "code": ["iconInlineCode","行级代码"],
+        "kbd": ["iconKeymap","键盘"],
+        "tag": ["iconTags","标签"],
+        "inline-math": ["iconMath","行级公式"],
+        "inline-memo": ["iconM","备注"],
+    }
 export default class PluginSample extends Plugin {
 
     private isMobile: boolean;
+    private isToolbarReorder: boolean;
 
     onload() {
+
         console.log("--- onload:"+this.name)
         // console.log("属性:"+JSON.stringify(Object.keys(this.data)))
         const frontEnd = getFrontend();
@@ -75,7 +99,7 @@ export default class PluginSample extends Plugin {
         })
         // 加载配置,添加工具栏按钮
         this.loadData(STORAGE_NAME).then((keylists)=>{
-            console.log(`${this.name} 加载配置:${keylists.length}个`)
+            console.log(`${this.name} 加载top bar配置:${keylists.length}个`)
             // console.log(keylists)
             // console.log(typeof keylists)
             // console.log( keylists instanceof Array)
@@ -84,6 +108,11 @@ export default class PluginSample extends Plugin {
                     let shortcutCfg = keylists[i];
                     console.log(`${i} ${shortcutCfg.enable?"启用":"禁用"} ${shortcutCfg.shortcut}`)
                     if (!shortcutCfg.enable) {
+                        continue
+                    }
+                    console.log("shortcutCfg:")
+                    console.log(shortcutCfg)
+                    if (shortcutCfg.id) {
                         continue
                     }
                     this.addTopBar({
@@ -120,13 +149,156 @@ export default class PluginSample extends Plugin {
                 }
             }
         })
+        // 编辑器工具栏配置加载
+        this.loadData(STORAGE_NAME2).then((keylists)=>{
+            console.log(`${this.name} 加载editor bar配置:${keylists.length}个`)
+            // console.log(keylists)
+            // console.log(typeof keylists)
+            // console.log( keylists instanceof Array)
+            if(keylists instanceof Array){
+                let _protyleOptions:IProtyleOption={toolbar:[]}
+                for (let i = 0; i < keylists.length; i++) {
+                    let shortcutCfg = keylists[i];
+                    console.log(`${i} ${shortcutCfg.enable?"启用":"禁用"} ${shortcutCfg.shortcut}`)
+                    if (!shortcutCfg.enable) {
+                        continue
+                    }
+                    if (shortcutCfg.id) {
+                        _protyleOptions.toolbar.push(shortcutCfg.id);
+                    }else {
+                        _protyleOptions.toolbar.push({
+                            name: this.name+"_toolbar_"+i,
+                            icon: shortcutCfg.icon,
+                            hotkey: "",
+                            tipPosition: "n",
+                            tip: `${shortcutCfg.title} (执行${shortcutCfg.shortcut})`,
+                            click(protyle: Protyle) {
+                                // ⇧⌘I
+                                // protyle.insert("😊");
+                                console.log("protyle:");
+                                console.log(protyle);
+                                console.log(protyle.protyle.options);
+                                // let p = protyle.getInstance() as Protyle;
+                                let range = protyle.getRange(protyle.protyle.wysiwyg.element);
+                                // console.log("版本:"+protyle.version)
+                                const selectText = range.toString();
+                                console.log("选中文本:" + selectText);
+                                // protyle.insert("("+selectText+")");
+                                let keyinfo = JSON.parse(shortcutCfg.keyinfo);
+                                let editor = document.querySelector(".layout__center [data-type='wnd'].layout__wnd--active > .layout-tab-container > div:not(.fn__none) .protyle-wysiwyg") as HTMLElement;
+                                console.log("editor:");
+                                console.log(editor);
+                                if (editor) {
+                                    setTimeout(() => {
+                                        editor.dispatchEvent(new KeyboardEvent("keydown", {...keyinfo, bubbles: true}));
+                                    }, 100);
+                                }else {
+                                    console.log(`找不到editor`)
+                                }
+                            }
+                        });
+                    }
+                }
+                this.protyleOptions=_protyleOptions
+            }
+        })
         console.log(this.i18n.helloPlugin + this.name);
+        console.log("this.topBarIcons:");
+        // console.log(this.topBarIcons);
+        // ws-main 触发频繁
+        // this.eventBus.on("ws-main",()=>{
+        //     console.log("触发:ws-main事件")
+        // })
+        // this.eventBus.on("loaded-protyle-static",()=>{
+        //     console.log("触发: [loaded-protyle-static] 事件")
+        // })
+        this.eventBus.on("loaded-protyle-static",this.onEvent_loaded_protyle_static.bind(this))
     }
 
 
     onLayoutReady() {
         console.log("----onLayoutReady:"+this.name)
         console.log(`frontend: ${getFrontend()}; backend: ${getBackend()}`);
+        if (1) {
+            // document.querySelector('')
+        }
+    }
+
+    onEvent_loaded_protyle_static({detail}: any){
+        console.log("触发: [loaded-protyle-static] 事件")
+        // console.log(detail)
+        // console.log(this.name)
+        // console.log(this.displayName)
+        if (1) {
+            if (this.isToolbarReorder) {
+                console.log("已经初始化顶栏")
+                return
+            }
+            console.log("初始化顶栏...")
+            let toolbarEle = document.querySelector("#toolbar");
+            if (toolbarEle) {
+                let aa:string[]=[]
+                // toolbarEle.childNodes
+                // toolbarEle.children
+                Array.from(toolbarEle.children).forEach((e)=>{
+                    let a=e as HTMLElement;
+                    console.log(a)
+                    aa.push(a.id)
+                })
+                console.log("初始工具栏ids:")
+                console.log(aa)
+            }
+            let barWorkspaceEle = document.querySelector("#barWorkspace");
+            let windowControlsEle = document.querySelector("#windowControls");
+            let left_tools=[]
+            let right_tools=[]
+            let saved_keylist=this.data[STORAGE_NAME]
+            // return;
+            if (saved_keylist instanceof Array) {
+                console.log("顶栏配置:")
+                console.log(saved_keylist)
+                let current_plugin_id_prefix=`plugin_${this.name}_`
+                let toolbar_ele
+                let idx=1
+                let toolid
+                for (let i = 0; i < saved_keylist.length; i++) {
+                    let _config = saved_keylist[i];
+                    if (_config.enable) {
+                        if (_config.id) {
+                            toolid=_config.id
+                            // toolbar_ele = toolbarEle.querySelector(`#${_config.id}`);
+                            // toolbar_ele = toolbarEle.querySelector(`#${toolid}`);
+                        }else {
+                            toolid=current_plugin_id_prefix+idx
+                            console.log("自定义配置:"+toolid)
+                            console.log(_config)
+                            // toolbar_ele=toolbarEle.querySelector(`#${current_plugin_id_prefix+idx}`)
+                            idx++
+                        }
+                        toolbar_ele = toolbarEle.querySelector(`#${toolid}`);
+                        if (!toolbar_ele) {
+                            console.log("不存在:" + toolid);
+                            console.log(_config);
+                            continue;
+                        }
+                        if (_config.position == "left") {
+                            left_tools.push(toolbar_ele);
+                        } else {
+                            right_tools.push(toolbar_ele);
+                        }
+                    }
+                }
+                if (left_tools.length>0) {
+                    barWorkspaceEle.after(...left_tools)
+                }
+                if (right_tools.length>0) {
+                    windowControlsEle.before(...right_tools)
+                }
+            }else {
+                console.log("顶栏配置不存在")
+            }
+            this.isToolbarReorder=true
+        }
     }
 
     onunload() {
@@ -165,24 +337,49 @@ export default class PluginSample extends Plugin {
         //     console.log("dialog_content:")
         //     console.log(dialog_content)
         // })
+        let readmeElement = this.createReadmeElement();
+        dialog_content.appendChild(readmeElement);
+        let topbar_tip_ele=elementFromHTML(`<div style="padding-bottom: 5px">配置顶部工具栏:</div>>`) as HTMLElement
+        dialog_content.appendChild(topbar_tip_ele);
+        // 图标列表
+        let iconListElement=this.createIconListElement();
+        let topbarCofigElement = this.createCofigElement('topbar',iconListElement);
+        dialog_content.appendChild(topbarCofigElement);
+        // protyle toolbar
+        let protyleToolbarDetail = elementFromHTML(
+`<details>
+<summary style="height: 25px">点击配置笔记工具栏</summary>
+</details>`) as HTMLElement;
+        let protyleToolbar = this.createCofigElement('editorbar',iconListElement);
+        protyleToolbarDetail.appendChild(protyleToolbar);
+        dialog_content.appendChild(protyleToolbarDetail)
 
-        let config=document.createElement("div")
-        dialog_content.appendChild(config);
-        config.className = "fn__block";
+        dialog_content.appendChild(iconListElement);
 
-        config.innerHTML=`
-<div style="padding-bottom: 10px">
+    }
+    createReadmeElement(){
+        let ele=elementFromHTML(`<div style="padding-bottom: 10px">
 <h4>配置说明</h4>
 <b>新建</b>: 增加一个工具栏图标配置<br>
 <b>加载图标</b>: 显示思源所有图标,然后你可以复制图标名称填入到图标输入框<br>
 <b>保存配置</b>: 保存所有配置,无快捷键的配置会被忽略<br>
 <b>刷新页面</b>: 刷新页面使配置生效
-</div>
+</div>`) as HTMLElement
 
+        return ele
+    }
+    createCofigElement(type:string,iconlist :HTMLElement){
+        let config=document.createElement("div")
+        config.className = "fn__block";
+        config.dataset['type'] = type+"Config";
+
+        config.innerHTML=`
 <button data-type="new">新建</button>
 <button data-type="load-icons">加载图标</button>
 <button data-type="save">保存配置</button>
 <button data-type="reload">刷新页面</button>
+${type!=="topbar"?`<button data-type="reset">重置</button>`:""}
+${type=="topbar"?`<button data-type="test">测试</button>`:""}
 <span data-type="msg"></span>
 `
         let msg=config.querySelector('[data-type="msg"]')
@@ -190,56 +387,91 @@ export default class PluginSample extends Plugin {
         let keylist=elementFromHTML(`<div data-type="keylist" class="plugin-add-shortcut-to-topbar__block"></div>`) as HTMLElement
         config.appendChild(keylist)
 
-        let iconlist=elementFromHTML(`<div data-type="iconlist" class="plugin-add-shortcut-to-topbar__fn_clear "></div>`) as HTMLElement
-        config.appendChild(iconlist)
-
-        //点击图标复制名称
-        iconlist.addEventListener('click',e=>{
-            let t=e.target as HTMLElement;
-            console.log("点击图标:")
-            console.log(t)
-            if (t.dataset['type']=='iconName') {
-                navigator.clipboard.writeText(t.textContent.trim())
-                    .then(() => {
-                        console.log("复制成功")
-                        t.setAttribute("data-content", "已复制");
-                        setTimeout(() => {
-                            t.setAttribute("data-content", "点击复制");
-                        }, 1500);
-                    }, (err) => {
-                        console.error('Async: Could not copy text: ', err)
-                    })
-
-            }
-        })
+        // new Sortable(keylist, {
+        //     animation: 150,
+        //     ghostClass: "blue-background-class"
+        // });
+        Sortable.create(keylist, { /* options */ });
 
         // 加载配置
-        let saved_keylist=this.data[STORAGE_NAME]
+        let saved_keylist
+        if (type=='topbar') {
+            saved_keylist=this.data[STORAGE_NAME];
+        }else {
+            saved_keylist=this.data[STORAGE_NAME2];
+        }
         console.log("保存的配置:")
         console.log(saved_keylist)
-        if (saved_keylist) {
-            for (let i = 0; i < saved_keylist.length; i++) {
-                let _config=saved_keylist[i]
-                let one_config_ele = create_one_keyboard_config.call(this,{
-                    enable: _config.enable,
-                    name: _config.title,
-                    keystr: _config.shortcut,
-                    icon:_config.icon,
-                    position:_config.position,
-                    keyinfo:_config.keyinfo
-                })
-                keylist.appendChild(one_config_ele)
+
+        let one_config_ele;
+        if (type ==='topbar') {
+            let sep_line
+            if (!_isMobile() && !_isWindow()) {
+                sep_line=elementFromHTML(`<div data-type="left-right-line" style="margin-left: 20%;">- - - - - - 左 右 分 界 线- - - - - - -</div>`) as HTMLElement
+                keylist.appendChild(sep_line);
             }
+            if (saved_keylist) {
+                for (let i = 0; i < saved_keylist.length; i++) {
+                    let _config = saved_keylist[i];
+                    one_config_ele = createTopbarConfigElement.call(this, type, {
+                        enable: _config.enable,
+                        name: _config.title,
+                        keystr: _config.shortcut,
+                        icon: _config.icon,
+                        position: _config.position,
+                        keyinfo: _config.keyinfo,
+                        id: _config.id
+                    });
+                    // keylist.appendChild(one_config_ele);
+                    if (_config.position=='left') {
+                        sep_line.before(one_config_ele)
+                    }else {
+                        keylist.appendChild(one_config_ele);
+                    }
+                }
+            }else {
+                this.initBuiltinTopbarTools(keylist);
+            }
+        }else if (type!=='topbar'){
+            if (saved_keylist) {
+                for (let i = 0; i < saved_keylist.length; i++) {
+                    let _config = saved_keylist[i];
+                    one_config_ele = createEditbarConfigElement.call(this, type, {
+                        enable: _config.enable,
+                        name: _config.title,
+                        keystr: _config.shortcut,
+                        icon: _config.icon,
+                        keyinfo: _config.keyinfo,
+                        keyinfo2: _config.keyinfo2,
+                        id: _config.id
+                    });
+                    keylist.appendChild(one_config_ele);
+                }
+            } else {
+                initBuiltinEditorTools(keylist)
+            }
+        }else if (1){
         }
 
         // 新建
+        let _aa
         config.querySelector('[data-type="new"]').addEventListener('click',(e)=>{
             e.preventDefault();
             e.stopPropagation()
             console.log("新建:")
             console.log(e.target)
-            let aa=create_one_keyboard_config.call(this,{})
-            keylist.appendChild(aa)
+            _aa= type == "topbar" ? createTopbarConfigElement.call(this, type, {}) : createEditbarConfigElement.call(this, type, {})
+            keylist.appendChild(_aa)
+        })
+        //测试
+        config.querySelector('[data-type="test"]')?.addEventListener('click',(e)=>{
+            e.preventDefault();
+            e.stopPropagation()
+            console.log("测试:")
+            console.log(e.target)
+            console.log(this.topBarIcons);
+            // _aa= type == "topbar" ? createTopbarConfigElement.call(this, type, {}) : createEditbarConfigElement.call(this, type, {})
+            // keylist.appendChild(_aa)
         })
         // 保存
         config.querySelector('[data-type="save"]').addEventListener('click',(e)=>{
@@ -251,16 +483,34 @@ export default class PluginSample extends Plugin {
             let keylists=[]
             let i=0;
             let child;
+            let cur_config
+            let toolbar_pos='left'
             for (let j = 0; j <keylist.childElementCount; j++) {
                 child=keylist.childNodes[j] as HTMLElement
-                let cur_config = get_config_from_element(child);
+                if (type=='topbar') {
+                    if (child.dataset['type']=='left-right-line') {
+                        toolbar_pos='right'
+                        continue
+                    }
+                    cur_config = get_topbarConfig_from_element(child);
+                    if (cur_config) {
+                        // cur_config.pos2=toolbar_pos;
+                        cur_config.position=toolbar_pos;
+                    }
+                }else{
+                    cur_config = get_editbarConfig_from_element(child);
+                }
                 if(cur_config){
                     keylists.push(cur_config)
                 }
             }
             console.log("保存配置:")
             console.log(keylists)
-            this.saveData(STORAGE_NAME, keylists);
+            if (type=='topbar') {
+                this.saveData(STORAGE_NAME, keylists);
+            }else {
+                this.saveData(STORAGE_NAME2, keylists);
+            }
 
             setTimeout(()=>{
                 msg.innerHTML=`已保存${keylists.length}个工具栏图标`
@@ -295,9 +545,144 @@ export default class PluginSample extends Plugin {
         config.querySelector('[data-type="reload"]').addEventListener('click',(e)=>{
             window.location.reload()
         })
+        //重置
+        config.querySelector('[data-type="reset"]')?.addEventListener('click',(e)=>{
+            e.preventDefault();
+            e.stopPropagation()
+            console.log("重置:")
+            // console.log(e.target)
+            // _aa= type == "topbar" ? createTopbarConfigElement.call(this, type, {}) : createEditbarConfigElement.call(this, type, {})
+            // keylist.appendChild(_aa)
+            keylist.innerHTML=''
+            initBuiltinEditorTools(keylist)
+        })
+        return config
     }
+    createIconListElement(){
+        let iconlist=elementFromHTML(`<div data-type="iconlist" class="plugin-add-shortcut-to-topbar__fn_clear "></div>`) as HTMLElement
+        //点击图标复制名称
+        iconlist.addEventListener('click',e=>{
+            let t=e.target as HTMLElement;
+            console.log("点击图标:")
+            console.log(t)
+            if (t.dataset['type']=='iconName') {
+                navigator.clipboard.writeText(t.textContent.trim())
+                    .then(() => {
+                        console.log("复制成功")
+                        t.setAttribute("data-content", "已复制");
+                        setTimeout(() => {
+                            t.setAttribute("data-content", "点击复制");
+                        }, 1500);
+                    }, (err) => {
+                        console.error('Async: Could not copy text: ', err)
+                    })
+
+            }
+        })
+        return iconlist
+    }
+    initBuiltinTopbarTools(keylist:HTMLElement){
+    let one_config_ele
+    _isMobile()
+    _isWindow()
+    let lr_separator = keylist.querySelector(`[data-type="left-right-line"]`);
+    if (1) {
+        let baseEle
+        let tmpEle
+        if (_isMobile()) {
+            // document.querySelector("#menuAbout").after(element);
+            baseEle = document.querySelector("#menuAbout");
+            let nextEle=baseEle.nextElementSibling
+            // while (nextEle){
+            // }
+        }else if(!_isWindow()){
+            let right_baseEle=document.querySelector("#barPlugins")
+            let left_baseEle=document.querySelector("#drag")
+            let baseEle=document.querySelector("#drag")
+            // baseEle=document.querySelector("#" + (element.getAttribute("data-position") === "right" ? "barPlugins" : "drag"))
+            tmpEle=baseEle.previousElementSibling as HTMLElement
+            let pos="right"
+            let left_topbar_tools:any[]=[]
+            let topbar_tools:{title:string,id:string,icon:string,position:string,enable:boolean}[]=[]
+            while(tmpEle){
+                let toolinfo={
+                    title:tmpEle.getAttribute('aria-label')||'',
+                    id:tmpEle.getAttribute('id')||'',
+                    icon:tmpEle.querySelector('svg use')?.getAttribute('xlink:href')?.substring(1)||'',
+                    position:'left',
+                    enable:!tmpEle.classList.contains('fn__none')
+                }
+                left_topbar_tools.splice(0, 0, toolinfo)
+                topbar_tools.splice(0, 0, toolinfo)
+                tmpEle=tmpEle.previousElementSibling
+            }
+            let right_topbar_tools=[]
+            tmpEle=baseEle.nextElementSibling as HTMLElement
+            while(tmpEle){
+                let toolinfo={
+                    title:tmpEle.getAttribute('aria-label')||'',
+                    id:tmpEle.getAttribute('id')||'',
+                    icon:tmpEle.querySelector('svg use')?.getAttribute('xlink:href')?.substring(1)||'',
+                    position:'right',
+                    enable:!tmpEle.classList.contains('fn__none')
+                }
+
+                right_topbar_tools.push(toolinfo)
+                topbar_tools.push(toolinfo)
+                tmpEle=tmpEle.nextElementSibling
+            }
+            console.log("顶栏 左 工具:")
+            console.log(left_topbar_tools)
+            console.log("顶栏 右 工具:")
+            console.log(right_topbar_tools)
+            console.log("顶栏 所有 工具:")
+            console.log(topbar_tools)
+            let current_plugin_id_prefix=`plugin_${this.name}_`
+            for (let toolinfo of topbar_tools){
+                console.log("toolinfo:")
+                console.log(toolinfo)
+                let isBuiltin=true
+                if (toolinfo.id?.startsWith(current_plugin_id_prefix)) {
+                    console.log("当前插件的<<")
+                    isBuiltin=false
+                    // continue
+                }
+                let tmp_id=toolinfo.id
+                if (toolinfo.id.startsWith(current_plugin_id_prefix) && !toolinfo.id.startsWith(current_plugin_id_prefix+"0")) {
+                    tmp_id=""
+                }
+                if (['barWorkspace','windowControls'].includes(toolinfo.id)) {
+                    continue;
+                }
+                one_config_ele = createTopbarConfigElement.call(this, "topbar", {
+                    name: toolinfo.title,
+                    icon: toolinfo.icon,
+                    id: tmp_id,
+                    position: toolinfo.position,
+                    enable: toolinfo.enable,
+                },isBuiltin);
+                if (toolinfo.position=='left') {
+                    lr_separator.before(one_config_ele)
+                }else {
+                    keylist.appendChild(one_config_ele);
+                }
+            }
+        }
+
+    }
+}
 
 }
+function getinfo(){
+
+}
+const _isMobile = () => {
+    return document.getElementById("sidebar") ? true : false;
+};
+
+const _isWindow = () => {
+    return document.getElementById("toolbar") ? false : true;
+};
 
 function elementFromHTML(html:string, trim = true) {
   // Process the HTML string.
@@ -314,26 +699,55 @@ function elementFromHTML(html:string, trim = true) {
   if (result.length === 1) return result[0];
   return result;
 }
-
+//out="";$0.childNodes.forEach(a=>{
+//     ty=a.dataset["type"]
+//     icon=a.querySelector('svg use')?.getAttribute('xlink:href').substring(1)
+//     if(ty && icon){
+//         out+=`"${ty}":"${icon}",\n`
+//     }
+// })
+// console.log(out)
+function initBuiltinEditorTools(keylist:HTMLElement){
+    let one_config_ele
+    for (const _id of Object.keys(builtinEditTools)){
+        let _config=builtinEditTools[_id]
+        one_config_ele = createEditbarConfigElement.call(this,'type',{
+                name: _config[1],
+                icon:_config[0],
+                id:_id,
+            });
+        keylist.appendChild(one_config_ele)
+    }
+}
 // 创建一个配置项元素
-function create_one_keyboard_config({name='',keystr='',enable=true,icon='iconGithub',position='right',keyinfo=""}){
+function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,icon='iconGithub',position='right',keyinfo="",id=""},isBuiltin=false){
     let a=document.createElement("div")
-    a.innerHTML=`标题 <input type="text" data-type="title" value="${name}" placeholder="提示语,可选" spellcheck="false" class="plugin-add-shortcut-to-topbar__titleInput"/>
+    // a.setAttribute("draggable","true")
+    // let isBuiltInTopbarTool= isBuiltin
+    let isBuiltInTopbarTool= id !==""
+    let html
+    html=`标题 <input type="text" data-type="title" value="${name}" data-id="${id}" placeholder="提示语,可选" spellcheck="false" class="plugin-add-shortcut-to-topbar__titleInput"/>
 快捷键 <input type="text" data-type="shortcut" value="${keystr}" placeholder="按下快捷键,必填" spellcheck="false" class="plugin-add-shortcut-to-topbar__shortcutInput" size="15" />
 图标 <input type="text" data-type="icon" value="${icon}" spellcheck="false" class="plugin-add-shortcut-to-topbar__iconInput"/>
 <svg class="b3-menu__icon">
 <use xlink:href="#${icon}"></use>
 </svg>位置
-<select data-type="position">
+<select data-type="position" hidden="">
 <option value="right">right</option>
 <option value="left">left</option>
 </select>
 启用 <input type="checkbox" data-type="enable" ${enable?'checked':''} />
-<button>删除</button>`
-
+<button data-type="delete"  style="margin-left: 10px">删除</button>
+<button data-type="editToolId" hidden>${id}</button>
+`
+    // <button data-type="moveUp">∧</button>
+    // <button data-type="moveDown">∨</button>
+    // 🔼 🔽  △ ▽ ﹀ ︿
+    // ∧∨
+    a.innerHTML=html;
     a.className='fn__flex-1';
 
-    a.querySelector('button').addEventListener('click',(e)=>{
+    a.querySelector('[data-type="delete"]').addEventListener('click',(e)=>{
         let t=e.target as HTMLElement
         let p=t.parentElement
         console.log("p:")
@@ -342,8 +756,35 @@ function create_one_keyboard_config({name='',keystr='',enable=true,icon='iconGit
             p?.remove()
         },100)
     });
+    let builtin_editbar_icons1= [
+        "block-ref","a", "text", "strong", "em","u","s","mark","sup","sub","clear","code","kbd","tag","inline-math","inline-memo",
+    ]
+    // 如果是系统自带的
+    if (isBuiltInTopbarTool) {
+        a.querySelector('[data-type="delete"]').remove()
+        // let sc = a.querySelector('[data-type="shortcut"]') as HTMLInputElement;
+        // sc.placeholder="系统自带"
+        let titleE = a.querySelector('[data-type="title"]') as HTMLInputElement;
+        titleE.setAttribute("disabled","")
+    }
+    // a.querySelector('[data-type="moveUp"]').addEventListener('click',(e)=>{
+    //     let t=e.target as HTMLElement
+    //     let p=t.parentElement
+    //     if (p.previousElementSibling) {
+    //         p.previousElementSibling.before(p)
+    //     }
+    // });
+    // a.querySelector('[data-type="moveDown"]').addEventListener('click',(e)=>{
+    //     let t=e.target as HTMLElement
+    //     let p=t.parentElement
+    //     if (p.nextElementSibling) {
+    //         p.nextElementSibling.after(p)
+    //     }
+    // });
     let posEle=a.querySelector('[data-type="position"]') as HTMLSelectElement
-    posEle.value=position;
+    if (posEle) {
+        posEle.value=position;
+    }
 
     let shortcutEle=a.querySelector('[data-type="shortcut"]') as HTMLInputElement
     shortcutEle.dataset['keyinfo']=keyinfo;
@@ -359,39 +800,169 @@ function create_one_keyboard_config({name='',keystr='',enable=true,icon='iconGit
         console.log("keyinfo:")
         console.log(keyinfo)
         let keyinfo_str=JSON.stringify(keyinfo)
-        console.log(keyinfo_str)
         t.dataset['keyinfo']=keyinfo_str;
 
         setTimeout(() => {
             let v=updateHotkeyTip(keymapStr)
+        console.log(keyinfo_str)
             t.value = v == "Backspace" ? "" : v;
         });
     })
-    a.querySelector('[data-type="icon"]').addEventListener('change', (event:KeyboardEvent) => {
+    if (isBuiltInTopbarTool) {
+        shortcutEle.placeholder="跟随设置"
+        shortcutEle.setAttribute("disabled","")
+    }
+
+    let iconInputEle=a.querySelector('[data-type="icon"]') as HTMLInputElement
+    iconInputEle.addEventListener('change', (event:KeyboardEvent) => {
         event.stopPropagation();
         event.preventDefault();
         let t=event.target as HTMLInputElement
         console.log("图标id为:"+t.value)
         let use=a.querySelector('use')
         use.setAttribute('xlink:href', `#${t.value}`)
+    });
+    if (isBuiltInTopbarTool) {
+        iconInputEle.setAttribute("disabled","")
+    }
+    return a
+}
+function createEditbarConfigElement(type:string,{name='',keystr='',enable=true,icon='iconGithub',position='right',keyinfo="",keyinfo2="",id=""}){
+    let a=document.createElement("div")
+    // a.setAttribute("draggable","true")
+    let isBuiltInEditTool=type!=='topbar' && builtinEditTools.hasOwnProperty(id)
+    let html
+    html=`标题 <input type="text" data-type="title" value="${name}" data-id="${id}" placeholder="提示语,可选" spellcheck="false" class="plugin-add-shortcut-to-topbar__titleInput"/>
+快捷键 <input type="text" data-type="shortcut" value="${keystr}" placeholder="按下快捷键,必填" spellcheck="false" class="plugin-add-shortcut-to-topbar__shortcutInput" size="15" />
+图标 <input type="text" data-type="icon" value="${icon}" spellcheck="false" class="plugin-add-shortcut-to-topbar__iconInput"/>
+<svg class="b3-menu__icon">
+<use xlink:href="#${icon}"></use>
+</svg>
+启用 <input type="checkbox" data-type="enable" ${enable?'checked':''} />
+<button data-type="delete" style="margin-left: 10px">删除</button>
+<button data-type="editToolId" hidden>${id}</button>
+`
+    // <button data-type="moveUp">∧</button>
+    // <button data-type="moveDown">∨</button>
+    // 🔼 🔽  △ ▽ ﹀ ︿
+    // ∧∨
+    a.innerHTML=html;
+    a.className='fn__flex-1';
+    let builtin_editbar_icons1= [
+        "block-ref","a", "text", "strong", "em","u","s","mark","sup","sub","clear","code","kbd","tag","inline-math","inline-memo",
+    ]
+    let deleteEle=a.querySelector('[data-type="delete"]') as HTMLButtonElement
+    deleteEle.addEventListener('click',(e)=>{
+        let t=e.target as HTMLElement
+        let p=t.parentElement
+        console.log("p:")
+        console.log(p)
+        setTimeout(()=>{
+            p?.remove()
+        },100)
+    });
+
+    //
+    if (isBuiltInEditTool) {
+        deleteEle.remove()
+        // let sc = a.querySelector('[data-type="shortcut"]') as HTMLInputElement;
+        // sc.placeholder="系统自带"
+        let titleE = a.querySelector('[data-type="title"]') as HTMLInputElement;
+        titleE.setAttribute("disabled","")
+    }
+
+    let posEle=a.querySelector('[data-type="position"]') as HTMLSelectElement
+    if (posEle) {
+        posEle.value=position;
+    }
+
+    let shortcutEle=a.querySelector('[data-type="shortcut"]') as HTMLInputElement
+    shortcutEle.dataset['keyinfo']=keyinfo;
+    shortcutEle.dataset['keyinfo2']=keyinfo2;
+    shortcutEle.addEventListener('keydown', (event:KeyboardEvent) => {
+        event.stopPropagation();
+        event.preventDefault();
+        let t=event.target as HTMLInputElement
+        const keymapStr = _getKeymapString(event);
+
+        let {ctrlKey,shiftKey,altKey,metaKey,key,code,keyCode}=event;
+        let keyinfo={ctrlKey,shiftKey,altKey,metaKey,key,code,keyCode}
+        console.log("keyinfo:")
+        console.log(keyinfo)
+        let keyinfo_str=JSON.stringify(keyinfo)
+        console.log(keyinfo_str)
+        t.dataset['keyinfo']=keyinfo_str;
+        t.dataset['keyinfo2']=keymapStr;
+
+        setTimeout(() => {
+            let v=updateHotkeyTip(keymapStr)
+            // let v=keymapStr
+            t.value = v == "Backspace" ? "" : v;
+        });
     })
+    if (isBuiltInEditTool) {
+        shortcutEle.placeholder="跟随设置"
+        shortcutEle.setAttribute("disabled","")
+    }
+
+    let iconInputEle=a.querySelector('[data-type="icon"]') as HTMLInputElement
+    iconInputEle.addEventListener('change', (event:KeyboardEvent) => {
+        event.stopPropagation();
+        event.preventDefault();
+        let t=event.target as HTMLInputElement
+        console.log("图标id为:"+t.value)
+        let use=a.querySelector('use')
+        use.setAttribute('xlink:href', `#${t.value}`)
+    });
+    if (isBuiltInEditTool) {
+        iconInputEle.setAttribute("disabled","")
+    }
     return a
 }
 
-function get_config_from_element(element:Element):any {
-    let config:{[key:string]:any}={}
+
+function get_topbarConfig_from_element(element:HTMLElement):any {
+    if (element.dataset['type']) {
+        console.log('分割线')
+        console.log(element)
+    }else {
+        console.log("普通配置:")
+        console.log(element)
+    }
+    let config:{[key:string]:any;}={};
     let shortcutInput=element.querySelector('[data-type="shortcut"]') as HTMLInputElement
-    if(!shortcutInput.value){
+    let titleInput=element.querySelector('[data-type="title"]') as HTMLInputElement
+    if(!shortcutInput.value && !titleInput.dataset['id']){
         return null
     }
     config.shortcut=shortcutInput.value
     config.keyinfo=shortcutInput.dataset['keyinfo'] || ""
-    let titleInput=element.querySelector('[data-type="title"]') as HTMLInputElement
     config.title=titleInput.value
+    config.id=titleInput.dataset['id']
     let iconInput=element.querySelector('[data-type="icon"]') as HTMLInputElement
     config.icon=iconInput.value
     let posSelect=element.querySelector('[data-type="position"]') as HTMLSelectElement
     config.position=posSelect.value
+    let enableInput=element.querySelector('[data-type="enable"]') as HTMLInputElement
+    config.enable=enableInput.checked
+    return config
+}
+function get_editbarConfig_from_element(element:Element):any {
+    let config:{[key:string]:any}={}
+    let shortcutInput=element.querySelector('[data-type="shortcut"]') as HTMLInputElement
+    let titleInput=element.querySelector('[data-type="title"]') as HTMLInputElement
+    if(!shortcutInput.value && !titleInput.dataset['id']){
+        return null
+    }
+    config.shortcut=shortcutInput.value
+    config.keyinfo=shortcutInput.dataset['keyinfo'] || ""
+    config.keyinfo2=shortcutInput.dataset['keyinfo2'] || ""
+    config.title=titleInput.value
+    config.id=titleInput.dataset['id']
+    let iconInput=element.querySelector('[data-type="icon"]') as HTMLInputElement
+    config.icon=iconInput.value
+    // let posSelect=element.querySelector('[data-type="position"]') as HTMLSelectElement
+    // config.position=posSelect.value
     let enableInput=element.querySelector('[data-type="enable"]') as HTMLInputElement
     config.enable=enableInput.checked
     return config
