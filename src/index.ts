@@ -87,6 +87,11 @@ export default class PluginSample extends Plugin {
 <symbol id="iconClick2" viewBox="0 0 1024 1024">
 <path d="M821.248 422.912h-2.048c-14.848 0-28.672 3.072-42.496 10.24-15.872-35.84-49.664-58.368-88.064-58.368-15.36 0-30.72 3.584-44.544 10.24-15.872-35.84-49.664-58.368-88.064-58.368-12.288 0-24.064 2.048-35.328 6.144V253.952c0-55.808-42.496-99.328-96.768-99.328-55.296 0-99.84 44.544-99.84 99.328v333.824l-41.984-41.472c-39.936-39.424-108.544-32.768-141.312 0-31.744 31.744-55.296 98.816-6.656 146.944l256 254.464c5.12 5.12 11.264 10.24 18.432 14.336 46.08 37.376 100.864 61.952 218.112 61.952 268.288 0 290.304-151.04 290.304-319.488V522.24c0.512-55.296-41.984-99.328-95.744-99.328zM243.712 598.528l91.648 91.136c19.968 19.968 53.76 5.632 53.76-22.528V263.68c0-19.456 15.872-34.816 35.328-34.816 18.432 0 32.256 14.848 32.256 34.816v296.96c0 17.92 14.336 32.256 32.256 32.256 16.896 0 30.208-12.8 32.256-28.672v-128c0-19.968 14.336-34.816 33.28-34.816 0.512 0 15.36 0 25.088 9.728 6.144 5.632 8.704 14.336 8.704 25.088V599.04c0 17.92 14.336 32.256 32.256 32.256 16.896 0 30.208-12.8 32.256-28.672V484.352c0-19.968 14.336-34.816 32.256-34.816 34.816 2.56 35.84 31.744 35.84 34.816v143.36c0 17.92 14.336 32.256 32.256 32.256 16.896 0 29.696-12.288 31.744-28.672v-102.912c0-19.456 14.848-34.816 33.792-34.816 0 0 14.848-0.512 24.576 9.216 6.144 5.632 9.216 14.336 9.216 26.112v176.128c0 142.848 0 255.488-225.792 255.488-93.184 0-152.064-19.456-197.632-64.512l-242.176-240.64c-8.192-8.192-12.288-17.92-11.264-28.16 0.512-9.216 5.12-18.944 12.8-26.624s18.432-11.264 28.672-11.264c10.24-1.024 19.968 2.56 26.624 9.216z" fill="#1296db" p-id="1996"></path><path d="M219.648 274.944c17.408-2.56 30.208-17.92 30.208-35.84 0.512-92.672 75.776-168.448 168.96-168.448s168.448 75.264 168.96 168.448c0 17.408 12.8 33.28 30.208 35.84 22.016 3.072 40.448-13.824 40.448-34.816C658.432 107.52 550.912 0 418.816 0S179.2 107.52 179.2 239.616c0 21.504 18.432 38.4 40.448 35.328z" fill="#1296db" p-id="1997"></path>
 </symbol>
+
+<symbol id="iconDrag24-05-16" viewBox="0 0 1024 1024">
+<path d="M1015.254 493.724l-0.007-0.007-153.378-153.378c-11.66-11.66-30.741-11.66-42.401 0l-0.007 0.007c-11.661 11.661-11.661 30.742 0 42.403l101.124 101.124H536.728V101.606L639.661 204.54c11.66 11.66 30.741 11.66 42.401 0l0.007-0.007c11.661-11.661 11.661-30.742 0-42.403L528.684 8.745c-11.66-11.66-30.741-11.66-42.401 0l-0.007 0.007-0.001 0.001L332.898 162.13c-11.661 11.661-11.661 30.742 0 42.403l0.007 0.007c11.66 11.66 30.741 11.66 42.401 0l99.316-99.316v378.649H103.414l101.124-101.124c11.661-11.661 11.661-30.742 0-42.403l-0.007-0.007c-11.66-11.66-30.741-11.66-42.401 0L8.752 493.717l-0.007 0.007c-11.661 11.661-11.661 30.742 0 42.403l0.007 0.007L162.13 689.512c11.66 11.66 30.741 11.66 42.401 0l0.007-0.007c11.661-11.661 11.661-30.742 0-42.403L103.414 545.978h371.208v372.798l-99.316-99.316c-11.66-11.66-30.741-11.66-42.401 0l-0.007 0.007c-11.661 11.661-11.661 30.742 0 42.403l153.385 153.385c11.66 11.66 30.741 11.66 42.401 0L682.069 861.87c11.661-11.661 11.661-30.742 0-42.403l-0.007-0.007c-11.66-11.66-30.741-11.66-42.401 0L536.728 922.394V545.978h383.858L819.462 647.102c-11.661 11.661-11.661 30.742 0 42.403l0.007 0.007c11.66 11.66 30.741 11.66 42.401 0l153.378-153.378 0.007-0.007c11.66-11.661 11.66-30.742-0.001-42.403z" fill="#141414" p-id="3264"></path>
+</symbol>
+
 `);
 
         this.addTopBar({
@@ -99,8 +104,9 @@ export default class PluginSample extends Plugin {
         })
         // 加载配置,添加工具栏按钮
         this.loadData(STORAGE_NAME).then((keylists)=>{
-            console.log(`${this.name} 加载top bar配置:${keylists.length}个`)
-            // console.log(keylists)
+            console.log(`${this.name} 加载top bar配置:`)
+            console.log(keylists)
+            console.log(`length:${keylists.length}个`)
             // console.log(typeof keylists)
             // console.log( keylists instanceof Array)
             if(keylists instanceof Array){
@@ -112,6 +118,7 @@ export default class PluginSample extends Plugin {
                     }
                     console.log("shortcutCfg:")
                     console.log(shortcutCfg)
+                    //只添加没有id的 (即用户自定义的)
                     if (shortcutCfg.id) {
                         continue
                     }
@@ -151,8 +158,9 @@ export default class PluginSample extends Plugin {
         })
         // 编辑器工具栏配置加载
         this.loadData(STORAGE_NAME2).then((keylists)=>{
-            console.log(`${this.name} 加载editor bar配置:${keylists.length}个`)
-            // console.log(keylists)
+            console.log(`${this.name} 加载editor bar配置:`)
+            console.log(keylists)
+            console.log(`length:${keylists.length}个`)
             // console.log(typeof keylists)
             // console.log( keylists instanceof Array)
             if(keylists instanceof Array){
@@ -263,29 +271,35 @@ export default class PluginSample extends Plugin {
                 let toolid
                 for (let i = 0; i < saved_keylist.length; i++) {
                     let _config = saved_keylist[i];
+                    if (_config.id) {
+                        toolid = _config.id;
+                        // toolbar_ele = toolbarEle.querySelector(`#${_config.id}`);
+                        // toolbar_ele = toolbarEle.querySelector(`#${toolid}`);
+                    } else {
+                        if (!_config.enable) {
+                            continue
+                        }
+                        toolid = current_plugin_id_prefix + idx;
+                        console.log("自定义配置:" + toolid);
+                        console.log(_config);
+                        // toolbar_ele=toolbarEle.querySelector(`#${current_plugin_id_prefix+idx}`)
+                        idx++;
+                    }
+                    toolbar_ele = toolbarEle.querySelector(`#${toolid}`);
+                    if (!toolbar_ele) {
+                        console.log("不存在:" + toolid);
+                        console.log(_config);
+                        continue;
+                    }
                     if (_config.enable) {
-                        if (_config.id) {
-                            toolid=_config.id
-                            // toolbar_ele = toolbarEle.querySelector(`#${_config.id}`);
-                            // toolbar_ele = toolbarEle.querySelector(`#${toolid}`);
-                        }else {
-                            toolid=current_plugin_id_prefix+idx
-                            console.log("自定义配置:"+toolid)
-                            console.log(_config)
-                            // toolbar_ele=toolbarEle.querySelector(`#${current_plugin_id_prefix+idx}`)
-                            idx++
-                        }
-                        toolbar_ele = toolbarEle.querySelector(`#${toolid}`);
-                        if (!toolbar_ele) {
-                            console.log("不存在:" + toolid);
-                            console.log(_config);
-                            continue;
-                        }
-                        if (_config.position == "left") {
-                            left_tools.push(toolbar_ele);
-                        } else {
-                            right_tools.push(toolbar_ele);
-                        }
+                        toolbar_ele.classList.remove('fn__none')
+                    }else {
+                        toolbar_ele.classList.add('fn__none')
+                    }
+                    if (_config.position == "left") {
+                        left_tools.push(toolbar_ele);
+                    } else {
+                        right_tools.push(toolbar_ele);
                     }
                 }
                 if (left_tools.length>0) {
@@ -339,18 +353,18 @@ export default class PluginSample extends Plugin {
         // })
         let readmeElement = this.createReadmeElement();
         dialog_content.appendChild(readmeElement);
-        let topbar_tip_ele=elementFromHTML(`<div style="padding-bottom: 5px">配置顶部工具栏:</div>>`) as HTMLElement
+        let topbar_tip_ele=elementFromHTML(`<div style="padding-bottom: 5px">配置顶部工具栏:</div>`) as HTMLElement
         dialog_content.appendChild(topbar_tip_ele);
         // 图标列表
         let iconListElement=this.createIconListElement();
-        let topbarCofigElement = this.createCofigElement('topbar',iconListElement);
+        let topbarCofigElement = this.createConfigElement('topbar',iconListElement);
         dialog_content.appendChild(topbarCofigElement);
         // protyle toolbar
         let protyleToolbarDetail = elementFromHTML(
-`<details>
+`<details style="border-top: 1px black solid; margin: 10px 0px;">
 <summary style="height: 25px">点击配置笔记工具栏</summary>
 </details>`) as HTMLElement;
-        let protyleToolbar = this.createCofigElement('editorbar',iconListElement);
+        let protyleToolbar = this.createConfigElement('editorbar',iconListElement);
         protyleToolbarDetail.appendChild(protyleToolbar);
         dialog_content.appendChild(protyleToolbarDetail)
 
@@ -358,17 +372,41 @@ export default class PluginSample extends Plugin {
 
     }
     createReadmeElement(){
-        let ele=elementFromHTML(`<div style="padding-bottom: 10px">
+        let html
+        let html3=`<div><UNK></div>`
+        let html1=`<div style="padding-bottom: 10px">
 <h4>配置说明</h4>
 <b>新建</b>: 增加一个工具栏图标配置<br>
 <b>加载图标</b>: 显示思源所有图标,然后你可以复制图标名称填入到图标输入框<br>
 <b>保存配置</b>: 保存所有配置,无快捷键的配置会被忽略<br>
 <b>刷新页面</b>: 刷新页面使配置生效
-</div>`) as HTMLElement
+<details>
+<summary style="height: 25px">更多</summary>
+拖动十字可以自定义排序
+<textarea class="fn__block">
+范德萨发的十多个
+</textarea>
+</details>
+</div>`
+        html=`
+<details style="border-bottom: 1px black solid;margin: 10px 0px;">
+<summary style="height: 25px">配置说明</summary>
+<p>
+拖动十字图标可以自定义排序<br>
+各个按钮的功能如下:
+</p>
+<b>新建</b>: 增加一个工具栏图标配置<br>
+<b>加载图标</b>: 显示思源所有图标,然后你可以复制图标名称填入到图标输入框<br>
+<b>保存配置</b>: 保存所有配置,无快捷键的配置会被忽略<br>
+<b>刷新页面</b>: 刷新页面使配置生效<br>
+<p></p>
+</details>
+`
+        let ele=elementFromHTML(html) as HTMLElement
 
         return ele
     }
-    createCofigElement(type:string,iconlist :HTMLElement){
+    createConfigElement(type:string, iconlist :HTMLElement){
         let config=document.createElement("div")
         config.className = "fn__block";
         config.dataset['type'] = type+"Config";
@@ -378,7 +416,8 @@ export default class PluginSample extends Plugin {
 <button data-type="load-icons">加载图标</button>
 <button data-type="save">保存配置</button>
 <button data-type="reload">刷新页面</button>
-${type!=="topbar"?`<button data-type="reset">重置</button>`:""}
+<button data-type="delete-storage">重置配置</button>
+${type!=="topbar"?`<button data-type="reset">恢复默认</button>`:""}
 ${type=="topbar"?`<button data-type="test">测试</button>`:""}
 <span data-type="msg"></span>
 `
@@ -391,7 +430,12 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
         //     animation: 150,
         //     ghostClass: "blue-background-class"
         // });
-        Sortable.create(keylist, { /* options */ });
+        // https://github.com/SortableJS/Sortable
+        // https://sortablejs.github.io/Sortable/
+        Sortable.create(keylist, {
+            // filter: 'input',
+            handle:'[data-draggable]'
+        });
 
         // 加载配置
         let saved_keylist
@@ -407,7 +451,7 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
         if (type ==='topbar') {
             let sep_line
             if (!_isMobile() && !_isWindow()) {
-                sep_line=elementFromHTML(`<div data-type="left-right-line" style="margin-left: 20%;">- - - - - - 左 右 分 界 线- - - - - - -</div>`) as HTMLElement
+                sep_line=elementFromHTML(`<div data-type="left-right-line" data-draggable style="margin-left: 20%;">- - - - - - 左 右 分 界 线- - - - - - -</div>`) as HTMLElement
                 keylist.appendChild(sep_line);
             }
             if (saved_keylist) {
@@ -472,6 +516,29 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
             console.log(this.topBarIcons);
             // _aa= type == "topbar" ? createTopbarConfigElement.call(this, type, {}) : createEditbarConfigElement.call(this, type, {})
             // keylist.appendChild(_aa)
+        })
+        config.querySelector('[data-type="delete-storage"]')?.addEventListener('click',(e)=>{
+            e.preventDefault();
+            e.stopPropagation()
+            // console.log("测试:")
+            // console.log(e.target)
+            // console.log(this.topBarIcons);
+            let text = "重置" + (type === "topbar" ? "顶栏" : "编辑器") + "本地配置?";
+            confirm("",text,(dialog)=>{
+                console.log(`点击了确定`)
+                // console.log("插件:"+this.name)
+                let storage_name = type === "topbar" ? STORAGE_NAME : STORAGE_NAME2;
+                this.removeData(storage_name).then((response)=>{
+                    console.log("removeData callback:")
+                    console.log(response)
+                    if (response.code==0) {
+                        confirm("", "已完成,是否刷新页面?", (dialog2) => {
+                            console.log(`点击了确定22`);
+                            window.location.reload()
+                        });
+                    }
+                })
+            })
         })
         // 保存
         config.querySelector('[data-type="save"]').addEventListener('click',(e)=>{
@@ -729,9 +796,15 @@ function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,ic
     html=`标题 <input type="text" data-type="title" value="${name}" data-id="${id}" placeholder="提示语,可选" spellcheck="false" class="plugin-add-shortcut-to-topbar__titleInput"/>
 快捷键 <input type="text" data-type="shortcut" value="${keystr}" placeholder="按下快捷键,必填" spellcheck="false" class="plugin-add-shortcut-to-topbar__shortcutInput" size="15" />
 图标 <input type="text" data-type="icon" value="${icon}" spellcheck="false" class="plugin-add-shortcut-to-topbar__iconInput"/>
-<svg class="b3-menu__icon">
+<svg class="b3-menu__icon" data-type="tool-icon">
 <use xlink:href="#${icon}"></use>
-</svg>位置
+</svg>
+<div data-draggable style="display: inline-block">
+排序
+<svg class="b3-menu__icon" >
+<use xlink:href="#iconDrag24-05-16"></use>
+</svg>
+</div>
 <select data-type="position" hidden="">
 <option value="right">right</option>
 <option value="left">left</option>
@@ -819,7 +892,7 @@ function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,ic
         event.preventDefault();
         let t=event.target as HTMLInputElement
         console.log("图标id为:"+t.value)
-        let use=a.querySelector('use')
+        let use=a.querySelector('[data-type="tool-icon"] use')
         use.setAttribute('xlink:href', `#${t.value}`)
     });
     if (isBuiltInTopbarTool) {
@@ -835,9 +908,15 @@ function createEditbarConfigElement(type:string,{name='',keystr='',enable=true,i
     html=`标题 <input type="text" data-type="title" value="${name}" data-id="${id}" placeholder="提示语,可选" spellcheck="false" class="plugin-add-shortcut-to-topbar__titleInput"/>
 快捷键 <input type="text" data-type="shortcut" value="${keystr}" placeholder="按下快捷键,必填" spellcheck="false" class="plugin-add-shortcut-to-topbar__shortcutInput" size="15" />
 图标 <input type="text" data-type="icon" value="${icon}" spellcheck="false" class="plugin-add-shortcut-to-topbar__iconInput"/>
-<svg class="b3-menu__icon">
+<svg class="b3-menu__icon" data-type="tool-icon">
 <use xlink:href="#${icon}"></use>
 </svg>
+<div data-draggable style="display: inline-block">
+排序
+<svg class="b3-menu__icon" >
+<use xlink:href="#iconDrag24-05-16"></use>
+</svg>
+</div>
 启用 <input type="checkbox" data-type="enable" ${enable?'checked':''} />
 <button data-type="delete" style="margin-left: 10px">删除</button>
 <button data-type="editToolId" hidden>${id}</button>
@@ -911,7 +990,7 @@ function createEditbarConfigElement(type:string,{name='',keystr='',enable=true,i
         event.preventDefault();
         let t=event.target as HTMLInputElement
         console.log("图标id为:"+t.value)
-        let use=a.querySelector('use')
+        let use=a.querySelector('[data-type="tool-icon"] use')
         use.setAttribute('xlink:href', `#${t.value}`)
     });
     if (isBuiltInEditTool) {
