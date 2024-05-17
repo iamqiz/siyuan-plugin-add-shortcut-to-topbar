@@ -287,6 +287,7 @@ export default class PluginSample extends Plugin {
                     }
                     toolbar_ele = toolbarEle.querySelector(`#${toolid}`);
                     if (!toolbar_ele) {
+                        // 配置里有,但是实际不存在的图标,跳过
                         console.log("不存在:" + toolid);
                         console.log(_config);
                         continue;
@@ -303,9 +304,11 @@ export default class PluginSample extends Plugin {
                     }
                 }
                 if (left_tools.length>0) {
+                    //已配置的左边工具放在左端
                     barWorkspaceEle.after(...left_tools)
                 }
                 if (right_tools.length>0) {
+                    //已配置的右边工具放在右端
                     windowControlsEle.before(...right_tools)
                 }
             }else {
@@ -353,7 +356,7 @@ export default class PluginSample extends Plugin {
         // })
         let readmeElement = this.createReadmeElement();
         dialog_content.appendChild(readmeElement);
-        let topbar_tip_ele=elementFromHTML(`<div style="padding-bottom: 5px">配置顶部工具栏:</div>`) as HTMLElement
+        let topbar_tip_ele=elementFromHTML(`<div style="padding-bottom: 5px"><b>配置顶部工具栏</b></div>`) as HTMLElement
         dialog_content.appendChild(topbar_tip_ele);
         // 图标列表
         let iconListElement=this.createIconListElement();
@@ -362,18 +365,19 @@ export default class PluginSample extends Plugin {
         // protyle toolbar
         let protyleToolbarDetail = elementFromHTML(
 `<details style="border-top: 1px black solid; margin: 10px 0px;">
-<summary style="height: 25px">点击配置笔记工具栏</summary>
+<summary style="height: 25px"><b>点击配置笔记工具栏</b></summary>
 </details>`) as HTMLElement;
         let protyleToolbar = this.createConfigElement('editorbar',iconListElement);
         protyleToolbarDetail.appendChild(protyleToolbar);
         dialog_content.appendChild(protyleToolbarDetail)
 
+        let icon_tip_ele=elementFromHTML(`<div style="border-top: 1px black solid;padding-bottom: 5px;"><b>图标列表</b>(点击<b>加载图标</b>按钮可显示)</div>`) as HTMLElement
+        dialog_content.appendChild(icon_tip_ele);
         dialog_content.appendChild(iconListElement);
 
     }
     createReadmeElement(){
         let html
-        let html3=`<div><UNK></div>`
         let html1=`<div style="padding-bottom: 10px">
 <h4>配置说明</h4>
 <b>新建</b>: 增加一个工具栏图标配置<br>
@@ -389,10 +393,14 @@ export default class PluginSample extends Plugin {
 </details>
 </div>`
         html=`
-<details style="border-bottom: 1px black solid;margin: 10px 0px;">
-<summary style="height: 25px">配置说明</summary>
-<p>
+<div style="margin-bottom: 10px;border-bottom: 1px black solid;">
+<h4>配置说明</h4>
+<br>
 拖动十字图标可以自定义排序<br>
+<p>结尾带New的项表示对应的图标不在配置中,因此图标最终的位置不固定,你可在调整顺序后点击<b>保存配置</b>来固定其顺序</p>
+<details>
+<summary style="height: 25px">更多</summary>
+<p>
 各个按钮的功能如下:
 </p>
 <b>新建</b>: 增加一个工具栏图标配置<br>
@@ -401,6 +409,7 @@ export default class PluginSample extends Plugin {
 <b>刷新页面</b>: 刷新页面使配置生效<br>
 <p></p>
 </details>
+</div>
 `
         let ele=elementFromHTML(html) as HTMLElement
 
@@ -473,7 +482,10 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
                         keylist.appendChild(one_config_ele);
                     }
                 }
-            }else {
+                // 增加不在配置里的新图标
+                this.initBuiltinTopbarTools(keylist);
+            } else {
+                // 无配置情况
                 this.initBuiltinTopbarTools(keylist);
             }
         }else if (type!=='topbar'){
@@ -513,7 +525,7 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
             e.stopPropagation()
             console.log("测试:")
             console.log(e.target)
-            console.log(this.topBarIcons);
+            // console.log(this.topBarIcons);
             // _aa= type == "topbar" ? createTopbarConfigElement.call(this, type, {}) : createEditbarConfigElement.call(this, type, {})
             // keylist.appendChild(_aa)
         })
@@ -648,7 +660,7 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
         })
         return iconlist
     }
-    initBuiltinTopbarTools(keylist:HTMLElement){
+    initBuiltinTopbarTools0(keylist:HTMLElement){
     let one_config_ele
     _isMobile()
     _isWindow()
@@ -738,6 +750,87 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
 
     }
 }
+    initBuiltinTopbarTools(keylist:HTMLElement){
+    let one_config_ele
+    _isMobile()
+    _isWindow()
+    let lr_separator = keylist.querySelector(`[data-type="left-right-line"]`);
+    if (1) {
+        let baseEle
+        let tmpEle
+        if (_isMobile()) {
+            // document.querySelector("#menuAbout").after(element);
+            baseEle = document.querySelector("#menuAbout");
+            let nextEle=baseEle.nextElementSibling
+            // while (nextEle){
+            // }
+        }else if(!_isWindow()){
+            let topbar_root=document.querySelector("#toolbar")
+            if (!topbar_root) {
+                return
+            }
+            //  let barWorkspaceEle = document.querySelector("#barWorkspace");
+            //  let windowControlsEle = document.querySelector("#windowControls");
+            let current_plugin_id_prefix=`plugin_${this.name}_`
+
+            let _position='left'
+            let _id
+            let new_left_tool_elements=[]
+            let new_right_tool_elements=[]
+            tmpEle=topbar_root.firstElementChild
+            while (tmpEle){
+                _id=tmpEle.getAttribute('id')||""
+                if (_id=='drag') {
+                    //左右分界线
+                    _position='right'
+                }else if (['barWorkspace','windowControls'].includes(_id)) {
+                    //跳过
+                }else {
+                    // 一般的图标
+                    let toolinfo = {
+                        title: tmpEle.getAttribute("aria-label") || "",
+                        id: tmpEle.getAttribute("id") || "",
+                        icon: tmpEle.querySelector("svg use")?.getAttribute("xlink:href")?.substring(1) || "",
+                        position: _position,
+                        enable: !tmpEle.classList.contains("fn__none")
+                    };
+                    let _ele = keylist.querySelector(`input[data-id="${_id}"]`);
+                    if (_ele) {
+                        //如果存在,则更新信息
+                    }else {
+                        //如果不存在,则新建
+                        let tmp_id = toolinfo.id;
+                        //是本插件的图标,但不是first
+                        if (toolinfo.id.startsWith(current_plugin_id_prefix) && !toolinfo.id.startsWith(current_plugin_id_prefix + "0")) {
+                            tmp_id = "";
+                        }
+                        one_config_ele = createTopbarConfigElement.call(this, "topbar", {
+                            name: toolinfo.title,
+                            icon: toolinfo.icon,
+                            id: tmp_id,
+                            position: toolinfo.position,
+                            enable: toolinfo.enable,
+                        },{isNew:true});
+                        if (_position=='left') {
+                            new_left_tool_elements.push(one_config_ele)
+                        }else {
+                            new_right_tool_elements.push(one_config_ele)
+                        }
+                    }
+                }
+                tmpEle=tmpEle.nextElementSibling;
+            }
+            //新增的图标放在分界元素的两边,紧贴分界
+            if (new_left_tool_elements.length>0) {
+                lr_separator.before(...new_left_tool_elements)
+            }
+            if (new_right_tool_elements.length>0) {
+                lr_separator.after(...new_right_tool_elements)
+            }
+            return;
+        }
+    }
+}
 
 }
 function getinfo(){
@@ -787,7 +880,7 @@ function initBuiltinEditorTools(keylist:HTMLElement){
     }
 }
 // 创建一个配置项元素
-function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,icon='iconGithub',position='right',keyinfo="",id=""},isBuiltin=false){
+function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,icon='iconGithub',position='right',keyinfo="",id=""}, {isNew = false}={}){
     let a=document.createElement("div")
     // a.setAttribute("draggable","true")
     // let isBuiltInTopbarTool= isBuiltin
@@ -812,6 +905,7 @@ function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,ic
 启用 <input type="checkbox" data-type="enable" ${enable?'checked':''} />
 <button data-type="delete"  style="margin-left: 10px">删除</button>
 <button data-type="editToolId" hidden>${id}</button>
+${isNew? "<span>New</span>":""}
 `
     // <button data-type="moveUp">∧</button>
     // <button data-type="moveDown">∨</button>
