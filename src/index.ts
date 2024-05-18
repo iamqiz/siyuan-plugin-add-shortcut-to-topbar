@@ -785,6 +785,9 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
                     _position='right'
                 }else if (['barWorkspace','windowControls'].includes(_id)) {
                     //跳过
+                }else if (_id.startsWith(current_plugin_id_prefix+"") && !_id.startsWith(current_plugin_id_prefix+"0")) {
+                    //跳过插件由用户自定义添加的,即id形如 current_plugin_id_prefix+1/2/3/4/..
+                    //id为 current_plugin_id_prefix+"0"的图标为本插件自带
                 }else {
                     // 一般的图标
                     let toolinfo = {
