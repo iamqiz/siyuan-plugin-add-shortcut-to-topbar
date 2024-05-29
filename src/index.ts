@@ -163,17 +163,23 @@ export default class PluginSample extends Plugin {
             console.log(`length:${keylists.length}个`)
             // console.log(typeof keylists)
             // console.log( keylists instanceof Array)
+            // 通过css的display=none 来禁用(隐藏)默认的toolbar工具
+            let css=''
             if(keylists instanceof Array){
                 let _protyleOptions:IProtyleOption={toolbar:[]}
                 for (let i = 0; i < keylists.length; i++) {
                     let shortcutCfg = keylists[i];
                     console.log(`${i} ${shortcutCfg.enable?"启用":"禁用"} ${shortcutCfg.shortcut}`)
-                    if (!shortcutCfg.enable) {
-                        continue
-                    }
+
                     if (shortcutCfg.id) {
                         _protyleOptions.toolbar.push(shortcutCfg.id);
+                        if (!shortcutCfg.enable) {
+                            css+= ` .protyle-toolbar>button[data-type="${shortcutCfg.id}"] { display:none; }\n`
+                        }
                     }else {
+                        if (!shortcutCfg.enable) {
+                            continue;
+                        }
                         _protyleOptions.toolbar.push({
                             name: this.name+"_toolbar_"+i,
                             icon: shortcutCfg.icon,
@@ -208,6 +214,12 @@ export default class PluginSample extends Plugin {
                     }
                 }
                 this.protyleOptions=_protyleOptions
+            }
+            const pluginsStyle = document.getElementById("pluginsStyleQAZ");
+            if (pluginsStyle) {
+                pluginsStyle.innerHTML = css;
+            } else {
+                document.head.insertAdjacentHTML("beforeend", `<style id="pluginsStyleQAZ">${css}</style>`);
             }
         })
         console.log(this.i18n.helloPlugin + this.name);
