@@ -2,7 +2,7 @@
   "name": "plugin-add-shortcut-to-topbar",
   "author": "iamqiz",
   "url": "https://github.com/iamqiz/siyuan-plugin-add-shortcut-to-topbar",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "minAppVersion": "3.0.0",
   "backends": [
     "windows",
@@ -23,8 +23,8 @@
     "zh_CN": "添加快捷键到工具栏"
   },
   "description": {
-    "default": "在顶栏和编辑器添加图标,点击之后执行相应的快捷键;或调整原有图标的顺序",
-    "zh_CN": "在顶栏和编辑器添加图标,点击之后执行相应的快捷键;或调整原有图标的顺序"
+    "default": "在顶栏和编辑器的工具栏里添加图标,点击之后执行自定义的快捷键;调整原有图标的顺序;隐藏指定的原有图标",
+    "zh_CN": "在顶栏和编辑器的工具栏里添加图标,点击之后执行自定义的快捷键;调整原有图标的顺序;隐藏指定的原有图标"
   },
   "readme": {
     "default": "README.md"

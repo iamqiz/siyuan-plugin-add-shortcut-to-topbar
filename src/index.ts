@@ -92,6 +92,9 @@ export default class PluginSample extends Plugin {
 <path d="M1015.254 493.724l-0.007-0.007-153.378-153.378c-11.66-11.66-30.741-11.66-42.401 0l-0.007 0.007c-11.661 11.661-11.661 30.742 0 42.403l101.124 101.124H536.728V101.606L639.661 204.54c11.66 11.66 30.741 11.66 42.401 0l0.007-0.007c11.661-11.661 11.661-30.742 0-42.403L528.684 8.745c-11.66-11.66-30.741-11.66-42.401 0l-0.007 0.007-0.001 0.001L332.898 162.13c-11.661 11.661-11.661 30.742 0 42.403l0.007 0.007c11.66 11.66 30.741 11.66 42.401 0l99.316-99.316v378.649H103.414l101.124-101.124c11.661-11.661 11.661-30.742 0-42.403l-0.007-0.007c-11.66-11.66-30.741-11.66-42.401 0L8.752 493.717l-0.007 0.007c-11.661 11.661-11.661 30.742 0 42.403l0.007 0.007L162.13 689.512c11.66 11.66 30.741 11.66 42.401 0l0.007-0.007c11.661-11.661 11.661-30.742 0-42.403L103.414 545.978h371.208v372.798l-99.316-99.316c-11.66-11.66-30.741-11.66-42.401 0l-0.007 0.007c-11.661 11.661-11.661 30.742 0 42.403l153.385 153.385c11.66 11.66 30.741 11.66 42.401 0L682.069 861.87c11.661-11.661 11.661-30.742 0-42.403l-0.007-0.007c-11.66-11.66-30.741-11.66-42.401 0L536.728 922.394V545.978h383.858L819.462 647.102c-11.661 11.661-11.661 30.742 0 42.403l0.007 0.007c11.66 11.66 30.741 11.66 42.401 0l153.378-153.378 0.007-0.007c11.66-11.661 11.66-30.742-0.001-42.403z" fill="#141414" p-id="3264"></path>
 </symbol>
 
+<symbol id="iconSeparator240530" viewBox="0 0 1024 1024">
+<path d="M469.333333 0h20.333334v1024H469.333333z" fill="#2c2c2c" p-id="4924" data-spm-anchor-id="a313x.search_index.0.i4.59913a81A9fOEr" class=""></path>
+</symbol>
 `);
 
         this.addTopBar({
@@ -177,6 +180,17 @@ export default class PluginSample extends Plugin {
                             css+= ` .protyle-toolbar>button[data-type="${shortcutCfg.id}"] { display:none; }\n`
                         }
                     }else {
+                        if (shortcutCfg.type=="separator") {
+                            _protyleOptions.toolbar.push({
+                                name: this.name + "_toolbar_" + i,
+                                icon: "iconSeparator240530",
+                                hotkey: "",
+                                tipPosition: "n",
+                                tip: '分割线',
+                                click(protyle: Protyle) {}
+                            })
+                            continue
+                        }
                         if (!shortcutCfg.enable) {
                             continue;
                         }
@@ -432,13 +446,15 @@ export default class PluginSample extends Plugin {
         config.className = "fn__block";
         config.dataset['type'] = type+"Config";
 
+// ${type!=="topbar"?`<button data-type="reset">恢复默认</button>`:""}
+
         config.innerHTML=`
 <button data-type="new">新建</button>
 <button data-type="load-icons">加载图标</button>
 <button data-type="save">保存配置</button>
 <button data-type="reload">刷新页面</button>
 <button data-type="delete-storage">重置配置</button>
-${type!=="topbar"?`<button data-type="reset">恢复默认</button>`:""}
+${type!=="topbar"?`<button data-type="separator">插入分割线</button>`:""}
 ${type=="topbar"?`<button data-type="test">测试</button>`:""}
 <span data-type="msg"></span>
 `
@@ -504,6 +520,11 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
             if (saved_keylist) {
                 for (let i = 0; i < saved_keylist.length; i++) {
                     let _config = saved_keylist[i];
+                    if (_config.type=="separator") {
+                        one_config_ele=createEditbarSeparatorElement()
+                        keylist.appendChild(one_config_ele);
+                        continue
+                    }
                     one_config_ele = createEditbarConfigElement.call(this, type, {
                         enable: _config.enable,
                         name: _config.title,
@@ -530,6 +551,14 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
             console.log(e.target)
             _aa= type == "topbar" ? createTopbarConfigElement.call(this, type, {}) : createEditbarConfigElement.call(this, type, {})
             keylist.appendChild(_aa)
+        })
+        config.querySelector('[data-type="separator"]')?.addEventListener('click',(e)=>{
+            e.preventDefault();
+            e.stopPropagation()
+            console.log("新建分割线")
+            let _bb
+            _bb=createEditbarSeparatorElement()
+            keylist.appendChild(_bb)
         })
         //测试
         config.querySelector('[data-type="test"]')?.addEventListener('click',(e)=>{
@@ -589,7 +618,11 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
                         cur_config.position=toolbar_pos;
                     }
                 }else{
-                    cur_config = get_editbarConfig_from_element(child);
+                    if (child.dataset['type']=='separator') {
+                        cur_config = {type: "separator"};
+                    } else {
+                        cur_config = get_editbarConfig_from_element(child);
+                    }
                 }
                 if(cur_config){
                     keylists.push(cur_config)
@@ -1009,6 +1042,37 @@ ${isNew? "<span>New</span>":""}
     }
     return a
 }
+
+function createEditbarSeparatorElement(){
+    let a
+    let html
+    // a=document.createElement("div")
+    // sep_line=elementFromHTML(`<div data-type="left-right-line" data-draggable style="margin-left: 20%;">- - - - - - 左 右 分 界 线- - - - - - -</div>`) as HTMLElement
+    // data-type="separator" style="margin-left: 10px"
+    html=`<div data-draggable style="padding-left: 20%;">垂 直 分 割 线
+<svg class="b3-menu__icon" data-type="tool-icon">
+<use xlink:href="#iconSeparator240530"></use>
+</svg>
+<button data-type="delete" >删除</button>
+</div>
+`
+    // a.innerHTML=html;
+    a=elementFromHTML(html) as HTMLElement
+    a.dataset['type']='separator'
+    a.className='fn__flex-1';
+
+    let deleteEle=a.querySelector('[data-type="delete"]') as HTMLButtonElement
+    deleteEle.addEventListener('click',(e)=>{
+        let t=e.target as HTMLElement
+        let p=t.parentElement
+        setTimeout(()=>{
+            p?.remove()
+        },100)
+    });
+
+    return a
+}
+
 function createEditbarConfigElement(type:string,{name='',keystr='',enable=true,icon='iconGithub',position='right',keyinfo="",keyinfo2="",id=""}){
     let a=document.createElement("div")
     // a.setAttribute("draggable","true")
