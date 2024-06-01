@@ -181,14 +181,15 @@ export default class PluginSample extends Plugin {
                         }
                     }else {
                         if (shortcutCfg.type=="separator") {
-                            _protyleOptions.toolbar.push({
-                                name: this.name + "_toolbar_" + i,
-                                icon: "iconSeparator240530",
-                                hotkey: "",
-                                tipPosition: "n",
-                                tip: '分割线',
-                                click(protyle: Protyle) {}
-                            })
+                            // _protyleOptions.toolbar.push({
+                            //     name: this.name + "_toolbar_" + i,
+                            //     icon: "iconSeparator240530",
+                            //     hotkey: "",
+                            //     tipPosition: "n",
+                            //     tip: '分割线',
+                            //     click(protyle: Protyle) {}
+                            // })
+                            _protyleOptions.toolbar.push("|");
                             continue
                         }
                         if (!shortcutCfg.enable) {
