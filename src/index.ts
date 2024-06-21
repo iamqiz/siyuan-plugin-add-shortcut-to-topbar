@@ -21,7 +21,7 @@ import {
     ICardData,
     EventMenu,
     IEventBusMap,
-    TEventBus, Lute, IProtyleOption
+    TEventBus, Lute, IProtyleOption, fetchSyncPost,
 } from "siyuan";
 import "./index.scss";
 import * as mylib from "./libs"
@@ -62,6 +62,7 @@ export default class PluginSample extends Plugin {
 
     private isMobile: boolean;
     private isToolbarReorder: boolean;
+    private installedPlugins: string[]
 
     onload() {
 
@@ -270,6 +271,9 @@ export default class PluginSample extends Plugin {
                 return
             }
             console.log("初始化顶栏...")
+            let pluginTopIconsUnpin=window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN]
+            console.log("pluginTopIconsUnpin:")
+            console.log(pluginTopIconsUnpin)
             let toolbarEle = document.querySelector("#toolbar");
             if (toolbarEle) {
                 let aa:string[]=[]
@@ -283,7 +287,9 @@ export default class PluginSample extends Plugin {
                 console.log("初始工具栏ids:")
                 console.log(aa)
             }
+            // 思源主菜单
             let barWorkspaceEle = document.querySelector("#barWorkspace");
+            // 最小化/最大化/关闭
             let windowControlsEle = document.querySelector("#windowControls");
             let left_tools=[]
             let right_tools=[]
@@ -319,10 +325,15 @@ export default class PluginSample extends Plugin {
                         console.log(_config);
                         continue;
                     }
-                    if (_config.enable) {
-                        toolbar_ele.classList.remove('fn__none')
+                    // 如果已被unpin,则不考虑自定义配置,思源会将其隐藏
+                    if (_config.id && pluginTopIconsUnpin.includes(_config.id)) {
+
                     }else {
-                        toolbar_ele.classList.add('fn__none')
+                        if (_config.enable) {
+                            toolbar_ele.classList.remove("fn__none");
+                        } else {
+                            toolbar_ele.classList.add("fn__none");
+                        }
                     }
                     if (_config.position == "left") {
                         left_tools.push(toolbar_ele);
@@ -355,6 +366,15 @@ export default class PluginSample extends Plugin {
 
     // 自定义设置
     openSetting() {
+        getInstalledPluginsSync().then(r => {
+            console.log("异步返回已安装插件:")
+            console.log(r)
+            this.installedPlugins=r || []
+            this.openSetting1()
+        })
+    }
+
+    openSetting1() {
         const dialog = new Dialog({
             title: this.name,
             height:'90vh',
@@ -401,6 +421,10 @@ export default class PluginSample extends Plugin {
         let icon_tip_ele=elementFromHTML(`<div style="border-top: 1px black solid;padding-bottom: 5px;"><b>图标列表</b>(点击<b>加载图标</b>按钮可显示)</div>`) as HTMLElement
         dialog_content.appendChild(icon_tip_ele);
         dialog_content.appendChild(iconListElement);
+        if (1) {
+            // getInstalledPlugins()
+            // getInstalledPluginsSync()
+        }
 
     }
     createReadmeElement(){
@@ -482,7 +506,7 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
         }else {
             saved_keylist=this.data[STORAGE_NAME2];
         }
-        console.log("保存的配置:")
+        console.log(`保存的 ${type} 配置:`)
         console.log(saved_keylist)
 
         let one_config_ele;
@@ -493,16 +517,43 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
                 keylist.appendChild(sep_line);
             }
             if (saved_keylist) {
+                // let installedPlugins = getInstalledPlugins();
+                // let installedPlugins = getInstalledPluginsSync();
+                let installedPlugins = this.installedPlugins || [];
+                console.log("已安装插件:")
+                console.log(installedPlugins)
+                console.log(installedPlugins.length)
                 for (let i = 0; i < saved_keylist.length; i++) {
                     let _config = saved_keylist[i];
+                    // 如果配置对应的插件已经被卸载,则隐藏该配置(设置 hidden 属性)
+                    let needHidden=false
+                    let _id=_config.id||""
+                    if (_id.startsWith('plugin_') && _id.search(/_\d+$/)>-1) {
+                        let plugin_dir_name = _id.substring("plugin_".length, _id.search(/_\d+$/));
+                        console.log("顶栏配置,对应插件:"+plugin_dir_name)
+                        console.log(_config)
+                        // 图标对应的插件已卸载,则在设置中隐藏
+                        if (!installedPlugins.includes(plugin_dir_name)) {
+                            needHidden=true
+                            console.log("已卸载的插件:"+plugin_dir_name)
+                        }
+                    }
+                    // 如果对应的图标被unpin了,那么 enable状态变成false
+                    let isUnpined=false
+                    let pluginTopIconsUnpin=window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN] || []
+                    if (_config.id && pluginTopIconsUnpin.includes(_config.id) ) {
+                        isUnpined=true
+                    }
                     one_config_ele = createTopbarConfigElement.call(this, type, {
-                        enable: _config.enable,
+                        enable: isUnpined ? false:_config.enable,
                         name: _config.title,
                         keystr: _config.shortcut,
                         icon: _config.icon,
                         position: _config.position,
                         keyinfo: _config.keyinfo,
-                        id: _config.id
+                        id: _config.id,
+                        hidden:needHidden,
+                        isUnpined:isUnpined
                     });
                     // keylist.appendChild(one_config_ele);
                     if (_config.position=='left') {
@@ -606,6 +657,7 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
             let child;
             let cur_config
             let toolbar_pos='left'
+            let pluginTopIconsUnpin = window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN] || [];
             for (let j = 0; j <keylist.childElementCount; j++) {
                 child=keylist.childNodes[j] as HTMLElement
                 if (type=='topbar') {
@@ -617,6 +669,11 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
                     if (cur_config) {
                         // cur_config.pos2=toolbar_pos;
                         cur_config.position=toolbar_pos;
+                        // 如果现在是启用状态且之前被unpin,则移除unpin
+                        if (cur_config.enable && cur_config.id && pluginTopIconsUnpin.includes(cur_config.id)) {
+                            // 删除
+                            window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN].splice(window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN].indexOf(cur_config.id), 1);
+                        }
                     }
                 }else{
                     if (child.dataset['type']=='separator') {
@@ -629,7 +686,22 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
                     keylists.push(cur_config)
                 }
             }
-            console.log("保存配置:")
+            // 将unpin状态保存到本地
+            // 参考: siyuan项目 app/src/layout/topBar.ts:333 openPlugin()
+            // setStorageVal(Constants.LOCAL_PLUGINTOPUNPIN, window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN]);
+            if (1 && type=='topbar') {
+                let _key=Constants.LOCAL_PLUGINTOPUNPIN
+                let _val=window.siyuan.storage[Constants.LOCAL_PLUGINTOPUNPIN]
+                fetchPost("/api/storage/setLocalStorageVal", {
+                    app: Constants.SIYUAN_APPID,
+                    key:_key,
+                    val:_val,
+                },(response)=>{
+                    console.log("unpin状态保存到本地,response:")
+                    console.log(response)
+                });
+            }
+            console.log("保存配置:");
             console.log(keylists)
             if (type=='topbar') {
                 this.saveData(STORAGE_NAME, keylists);
@@ -882,9 +954,65 @@ ${type=="topbar"?`<button data-type="test">测试</button>`:""}
 }
 
 }
-function getinfo(){
 
+async function getInstalledPluginsSync(){
+    let installedPlugins: string[] = [];
+    let url = "/api/bazaar/getInstalledPlugin";
+
+    let response = await fetchSyncPost(url,{
+        frontend: getFrontend(),
+    });
+    console.log("同步返回结果:")
+    console.log(response)
+    if (response.code == 0) {
+        let packages: { [key: string]: string }[] = response.data.packages;
+        // console.log(packages);
+        packages.forEach((v, idx) => {
+            // console.log("idx:"+idx)
+            // console.log("idx:" + idx, v.author);
+            // console.log("name:" + v.name);
+            // console.log("iconURL:" + v.iconURL);
+            let ps = v.iconURL ? v.iconURL.split("/") : [];
+            // console.log("dirname:"+path.dirname())
+            let dirname = ps.length > 1 ? ps[ps.length - 2] : "";
+            dirname ? installedPlugins.push(dirname) : [];
+        });
+        console.log("同步installedPlugins:");
+        console.log(installedPlugins);
+    }
+    return installedPlugins
 }
+function getInstalledPlugins(){
+    let installedPlugins: string[] = [];
+    let url = "/api/bazaar/getInstalledPlugin";
+    fetchPost(url, {
+        frontend: getFrontend(),
+    }, (response) => {
+        console.log("api结果:");
+        // console.log(response);
+        // console.log(response.data)
+        if (1) {
+            if (response.code == 0) {
+                let packages: { [key: string]: string }[] = response.data.packages;
+                console.log(packages);
+                packages.forEach((v, idx) => {
+                    // console.log("idx:"+idx)
+                    console.log("idx:" + idx, v.author);
+                    console.log("name:" + v.name);
+                    console.log("iconURL:" + v.iconURL);
+                    let ps = v.iconURL ? v.iconURL.split("/") : [];
+                    // console.log("dirname:"+path.dirname())
+                    let dirname = ps.length > 1 ? ps[ps.length - 2] : "";
+                    dirname ? installedPlugins.push(dirname) : [];
+                });
+                console.log("installedPlugins:");
+                console.log(installedPlugins);
+            }
+        }
+    });
+    return installedPlugins
+}
+
 const _isMobile = () => {
     return document.getElementById("sidebar") ? true : false;
 };
@@ -929,11 +1057,15 @@ function initBuiltinEditorTools(keylist:HTMLElement){
     }
 }
 // 创建一个配置项元素
-function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,icon='iconGithub',position='right',keyinfo="",id=""}, {isNew = false}={}){
+function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,icon='iconGithub',position='right',keyinfo="",id="",hidden=false,isUnpined=false}, {isNew = false}={}){
     let a=document.createElement("div")
     // a.setAttribute("draggable","true")
+    // 如果对应的插件已被卸载,则隐藏配置元素
+    if (hidden) {
+        a.setAttribute('hidden','')
+    }
     // let isBuiltInTopbarTool= isBuiltin
-    let isBuiltInTopbarTool= id !==""
+    let isBuiltInTopbarTool= id !=="";
     let html
     html=`标题 <input type="text" data-type="title" value="${name}" data-id="${id}" placeholder="提示语,可选" spellcheck="false" class="plugin-add-shortcut-to-topbar__titleInput"/>
 快捷键 <input type="text" data-type="shortcut" value="${keystr}" placeholder="按下快捷键,必填" spellcheck="false" class="plugin-add-shortcut-to-topbar__shortcutInput" size="15" />
@@ -955,6 +1087,7 @@ function createTopbarConfigElement(type:string,{name='',keystr='',enable=true,ic
 <button data-type="delete"  style="margin-left: 10px">删除</button>
 <button data-type="editToolId" hidden>${id}</button>
 ${isNew? "<span>New</span>":""}
+${isUnpined? "<span>未钉住</span>":""}
 `
     // <button data-type="moveUp">∧</button>
     // <button data-type="moveDown">∨</button>
